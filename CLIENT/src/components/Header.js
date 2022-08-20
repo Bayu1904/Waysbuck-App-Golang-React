@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "react-query";
 import { API } from "../config/api";
 
@@ -16,7 +16,6 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Modal from "react-bootstrap/Modal";
-import InputText from "./inputForm/InputText";
 import ButtonSubmit from "./inputForm/Button";
 import Cup from "../assets/cup.png";
 import Topping from "../assets/topping.png";
@@ -36,6 +35,20 @@ function Header() {
   const handleChange = (e) => {
     setForm({
       ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // StateLogin
+  const [formLog, setFormLog] = useState({
+    emailLogin: "",
+    passwordLogin: "",
+  });
+  const { emailLogin, passwordLogin } = formLog;
+
+  const handleChangeLog = (e) => {
+    setFormLog({
+      ...formLog,
       [e.target.name]: e.target.value,
     });
   };
@@ -64,41 +77,15 @@ function Header() {
     }
   }, [show]);
 
+  const navigate = useNavigate();
   const handleLogOut = () => {
     dispatch({
-      type: "LOGOUT",
-      payload: {},
+      type: "AUTH_ERROR",
     });
+    navigate("/");
   };
 
-  const handleOnSubmit = (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const data = {
-      email,
-      password,
-    };
-
-    if (data.email === "admin@mail.com") {
-      dispatch({
-        type: "LOGIN_ADMIN",
-        payload: data,
-      });
-    } else if (data.email === "dandi@mail.com") {
-      dispatch({
-        type: "LOGIN_USER",
-        payload: data,
-      });
-    } else {
-      dispatch({
-        type: "LOGOUT",
-        payload: {},
-      });
-    }
-  };
-
+  // handleSubmit REGISTER
   const handleSubmit = useMutation(async (e) => {
     try {
       e.preventDefault();
@@ -129,7 +116,7 @@ function Header() {
           email: "",
           password: "",
         });
-        await delay(2000);
+        await delay(1000);
         regClose();
       } else {
         const alert = (
@@ -139,6 +126,52 @@ function Header() {
         );
         setMessage(alert);
       }
+    } catch (error) {
+      const alert = (
+        <Alert variant="danger" className="py-1">
+          Failed
+        </Alert>
+      );
+      setMessage(alert);
+      console.log(error);
+    }
+  });
+
+  // HandleSubmit LOGIN
+  const handleSubmitLogin = useMutation(async (e) => {
+    try {
+      e.preventDefault();
+
+      // Configuration Content-type
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+
+      // Data body
+      const reqBody = JSON.stringify(formLog);
+
+      // Insert data user to database
+      const response = await API.post("/login", reqBody, config);
+      console.log(response);
+      // const { status, name, email, token } = response.data.data
+      if (response?.data.code === 200) {
+        if (response.data.data.status === "customer") {
+          dispatch({
+            type: "LOGIN_USER",
+            payload: response.data.data,
+          });
+        } else if (response.data.data.status === "admin") {
+          dispatch({
+            type: "ADMIN",
+            payload: response.data.data,
+          });
+        } else {
+          navigate("/");
+        }
+      }
+      handleClose();
     } catch (error) {
       const alert = (
         <Alert variant="danger" className="py-1">
@@ -249,23 +282,28 @@ function Header() {
             <h1 className="m-3 mb-0" style={{ color: "#BD0707" }}>
               Login
             </h1>
-            <form onSubmit={handleOnSubmit}>
+            {message && message}
+            <Form onSubmit={(e) => handleSubmitLogin.mutate(e)}>
               <Modal.Body>
-                <InputText
+                <Form.Control
                   type="email"
                   placeholder="Email"
-                  id="email"
-                  name="email"
+                  value={emailLogin}
+                  name="emailLogin"
+                  onChange={handleChangeLog}
+                  className="px-3 py-2 mt-3"
                 />
-                <InputText
+                <Form.Control
                   type="password"
                   placeholder="Password"
-                  id="password"
-                  name="password"
+                  value={passwordLogin}
+                  name="passwordLogin"
+                  onChange={handleChangeLog}
+                  className="px-3 py-2 mt-3"
                 />
               </Modal.Body>
               <ButtonSubmit type="submit" text="LOGIN" />
-            </form>
+            </Form>
             <p className="text-center mt-3">
               Dont have an Account? click{" "}
               <button
@@ -284,7 +322,7 @@ function Header() {
           </Modal>
 
           <Modal className="p-4" show={reg} onHide={regClose}>
-            <h1 className="m-3 mb-0" style={{ color: "#BD0707" }}>
+            <h1 className="m-3 mb-1" style={{ color: "#BD0707" }}>
               Register
             </h1>
             {message && message}

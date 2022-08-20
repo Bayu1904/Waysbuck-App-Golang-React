@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 
 import Card from "react-bootstrap/Card";
@@ -6,11 +6,11 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import formatPrice from "../utils/formatPrice";
-import { UserContext } from "../utils/CreateContext";
+// import { UserContext } from "../utils/CreateContext";
 // import LandingPage from "../pages/Landingpages";
 
 export default function ListCard(props) {
-  const [state] = useContext(UserContext);
+  // const [state] = useContext(UserContext);
   // let isLogin = state.isLogin;
 
   return (
