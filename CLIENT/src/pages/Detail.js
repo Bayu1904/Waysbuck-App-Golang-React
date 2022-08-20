@@ -16,7 +16,7 @@ export default function Detail() {
 
   let { data: product } = useQuery("product", async () => {
     const response = await API.get("/product/" + id);
-    console.log(response);
+    // console.log(response);
     return response.data.data;
   });
   return (

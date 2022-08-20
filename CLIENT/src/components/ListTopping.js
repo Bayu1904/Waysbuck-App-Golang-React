@@ -18,10 +18,9 @@ export default function ListTopping(props) {
 
   // topingHandler
   const [toping, setToping] = useState([]);
-  const [topingId, setTopingId] = useState([]);
+  let [topingId, setTopingId] = useState([]);
 
   const handleChange = (e) => {
-    console.log(`ini dari event = ${e}`);
     let updateToping = [...toping];
     if (e.target.checked) {
       updateToping = [...toping, e.target.name];
@@ -29,19 +28,15 @@ export default function ListTopping(props) {
       updateToping.splice(toping.indexOf(e.target.name));
     }
     setToping(updateToping);
-    // console.log(toping);
 
     let updateTopingId = [...topingId];
     if (e.target.checked) {
-      topingId = [...topingId, e.target.id];
+      updateTopingId = [...topingId, parseInt(e.target.id)];
     } else {
-      topingId.splice(topingId.indexOf(e.target.value));
+      updateTopingId.splice(topingId.indexOf(e.target.value));
     }
-
     setTopingId(updateTopingId);
   };
-  console.log(`ini dari toping = ${toping}`);
-  console.log(`ini dari id toping = ${topingId}`);
 
   let resultTotal = toping.reduce((a, b) => {
     return a + parseInt(b);
