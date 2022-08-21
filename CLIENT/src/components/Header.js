@@ -237,7 +237,7 @@ function Header() {
                 >
                   <NavDropdown.Item>
                     <Link
-                      to="/AddProduct"
+                      to="/addProduct"
                       style={{ textDecoration: "none", color: "black" }}
                     >
                       <img src={Cup} alt="User" style={{ height: 30 }} />{" "}
@@ -246,7 +246,7 @@ function Header() {
                   </NavDropdown.Item>
                   <NavDropdown.Item>
                     <Link
-                      to="/AddTopping"
+                      to="/addToping"
                       style={{ textDecoration: "none", color: "black" }}
                     >
                       <img src={Topping} alt="User" style={{ height: 30 }} />{" "}

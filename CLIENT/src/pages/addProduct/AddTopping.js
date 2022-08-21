@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { API } from "../../config/api";
+import {useMutation } from "react-query"
 import Swal from 'sweetalert2'
 
 // components
@@ -12,42 +14,63 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
-import Topping from "../../assets/Rectangle 4Addtopping.png";
-
 export default function AddTopping() {
+  const [preview, setPreview] = useState(null);
+  const [nameUrl, setNameUrl] = useState("");
   const [addTopping, setAddTopping] = useState({
-    titleProduct: '',
-    price: ''
+    name: "",
+    price: "",
+    image: "",
   })
 
-  const { titleProduct, price } = addTopping
-
-  const handleAddTopping = (e) => {
+  const handleChange = (e) => {
     setAddTopping({
       ...addTopping,
-      [e.target.name]: e.target.value
-    })
-  }
+      [e.target.name]:
+        e.target.type === "file" ? e.target.files : e.target.value,
+    });
+    console.log(e);
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
-    const addStaticProduct = {
-      title: addTopping.titleProduct,
-      price: addTopping.price
+    if (e.target.type === "file") {
+      let url = URL.createObjectURL(e.target.files[0]);
+      setPreview(url);
+      setNameUrl(e.target.files[0].name);
     }
+  };
 
-    console.log(addStaticProduct);
+  console.log(addTopping)
+  const handleSubmit = useMutation(async (e) => {
+    try {
+      e.preventDefault();
 
-    Swal.fire({
-      title: `Berhasil`,
-      text: `Topping ${addStaticProduct.title} senilai ${addStaticProduct.price} berhasil ditambahkan`,
-      icon: 'success',
-      confirmButtonText: 'OK'
-    })
+      // Store data with FormData as object
+      const formData = new FormData();
+      formData.set("image", addTopping.image[0], addTopping.image[0].name);
+      formData.set("name", addTopping.name);
+      formData.set("price", addTopping.price);
 
-  }
+      // Configuration
+      const config = {
+        headers: {
+          "Content-type": "multipart/form-data",
+        },
+      };
 
+      // Insert product data
+      const response = await API.post("/toping", formData, config);
+      console.log(response);
+
+      // Swal.fire({
+      //   title: `Berhasil`,
+      //   text: `Topping ${AddTopping.title} harga ${AddTopping.price} berhasil ditambahkan`,
+      //   icon: 'success',
+      //   confirmButtonText: 'OK'
+      // })
+    } catch (error) {
+      console.log(error);
+    }
+  });
+  
   return (
     <>
       <Header className="mb-5" />
@@ -55,16 +78,28 @@ export default function AddTopping() {
       <Container fluid className="w-75 mt-5">
         <Row>
           <Col sm={7} className="px-5">
-            <form onSubmit={(e) => handleSubmit(e)}>
+            <form onSubmit={(e) => handleSubmit.mutate(e)}>
               <h1 className="mb-5">Add Topping</h1>
-              <InputText type="text" placeholder="Product Title" name="titleProduct" onChange={handleAddTopping} value={`${titleProduct}`} />
-              <InputText type="text" placeholder="Price" name="price" onChange={handleAddTopping} value={`${price}`} />
-              <InputText type="file" />
+              <InputText type="text" placeholder="Product Title" name="name" onChange={handleChange}/>
+              <InputText type="text" placeholder="Price" name="price" onChange={handleChange}/>
+              <InputText type="file" name="image" onChange={handleChange} />
               <ButtonSubmit type="submit" text="AddTopping" />
             </form>
           </Col>
           <Col sm={5} className="text-center">
-            <img src={Topping} alt="" />
+          {preview && (
+              <div>
+                <img
+                  src={preview}
+                  style={{
+                    maxWidth: "300px",
+                    maxHeight: "400px",
+                    objectFit: "cover",
+                  }}
+                  alt={preview}
+                />
+              </div>
+            )}
           </Col>
         </Row>
       </Container>

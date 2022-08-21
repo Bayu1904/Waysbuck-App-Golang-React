@@ -1,7 +1,7 @@
 // dependencies
+import React, { useContext, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { API, setAuthToken } from "./config/api";
-import { useContext, useEffect } from "react";
 import { UserContext } from "./utils/CreateContext";
 
 // style
@@ -17,6 +17,7 @@ import AddToping from "./pages/addProduct/AddTopping";
 import Income from "./components/Income";
 import Detail from "./pages/Detail";
 
+// untuk pengecekan token isLogin true/false
 if (localStorage.token) {
   setAuthToken(localStorage.token);
 }
@@ -28,6 +29,9 @@ function App() {
   const [state, dispatch] = useContext(UserContext);
 
   useEffect(() => {
+    if (localStorage.token) {
+      setAuthToken(localStorage.token);
+    }
     // Redirect Auth
     if (state.isLogin === false) {
       navigate("/");
@@ -38,7 +42,7 @@ function App() {
         navigate("/");
       }
     }
-  }, [state]);
+  },[state]);
 
   const checkUser = async () => {
     try {
@@ -68,7 +72,7 @@ function App() {
 
   useEffect(() => {
     checkUser();
-  }, []);
+  },[]);
 
   return (
     <Routes>

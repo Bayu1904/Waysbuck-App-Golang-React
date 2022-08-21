@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useQuery, useMutation } from "react-query";
-import Swal from "sweetalert2";
+import { useMutation } from "react-query";
+// import Swal from "sweetalert2";
 
 // components
 import InputText from "../../components/inputForm/InputText";
@@ -12,7 +12,7 @@ import Header from "../../components/Header";
 // reactBootstrap
 import { Container, Row, Col } from "react-bootstrap";
 
-import Boba from "../../assets/Rectangle 4boba-1.png";
+
 import { API } from "../../config/api";
 // import { UserContext } from "../../utils/CreateContext";
 
@@ -51,7 +51,6 @@ export default function AddProduct() {
       // Store data with FormData as object
       const formData = new FormData();
       formData.set("image", addProduct.image[0], addProduct.image[0].name);
-      // console.log(image);
       formData.set("name", addProduct.titleProduct);
       formData.set("price", addProduct.price);
 
@@ -111,8 +110,8 @@ export default function AddProduct() {
                 <img
                   src={preview}
                   style={{
-                    maxWidth: "150px",
-                    maxHeight: "150px",
+                    maxWidth: "300px",
+                    maxHeight: "400px",
                     objectFit: "cover",
                   }}
                   alt={preview}
