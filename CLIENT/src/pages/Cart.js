@@ -43,10 +43,11 @@ export default function Cart() {
     // Insert transaction data
     const body = JSON.stringify(form);
 
-    const response = await API.patch("/transaction-id", body, config);
+    const response = await API.patch("/transactionID", body, config);
+
     console.log(response);
 
-    const token = response.data.token;
+    const token = response.data.data.token;
     console.log(token);
     window.snap.pay(token, {
       onSuccess: function (result) {
@@ -75,7 +76,7 @@ export default function Cart() {
     //change this to the script source you want to load, for example this is snap.js sandbox env
     const midtransScriptUrl = "https://app.sandbox.midtrans.com/snap/snap.js";
     //change this according to your client-key
-    const myMidtransClientKey = "SB-Mid-client-kGTHyTyq5S4wWJya";
+    const myMidtransClientKey = " ";
 
     let scriptTag = document.createElement("script");
     scriptTag.src = midtransScriptUrl;

@@ -11,11 +11,11 @@ import (
 	"strconv"
 
 	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/coreapi"
 	"github.com/midtrans/midtrans-go/snap"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
-	"github.com/midtrans/midtrans-go/coreapi"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -171,7 +171,7 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 
 	// 1. Initiate Snap client
 	var s = snap.Client{}
-	s.New(os.Getenv("SERVER_KEY"), midtrans.Sandbox)
+	s.New("SB-Mid-server-4eCWOLTHCsl1kjXWS_5hPoWZ", midtrans.Sandbox)
 	// Use to midtrans.Production if you want Production Environment (accept real transaction).
 
 	// 2. Initiate Snap request param
