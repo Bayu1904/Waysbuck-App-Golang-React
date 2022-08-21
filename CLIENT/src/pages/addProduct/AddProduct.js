@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { useQuery, useMutation } from "react-query";
 import Swal from "sweetalert2";
 
 // components
@@ -8,75 +10,115 @@ import ButtonSubmit from "../../components/inputForm/Button";
 import Header from "../../components/Header";
 
 // reactBootstrap
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
+import { Container, Row, Col } from "react-bootstrap";
 
 import Boba from "../../assets/Rectangle 4boba-1.png";
+import { API } from "../../config/api";
 // import { UserContext } from "../../utils/CreateContext";
 
 export default function AddProduct() {
+  const navigate = useNavigate();
+
+  const [preview, setPreview] = useState(null);
+  const [nameUrl, setNameUrl] = useState();
   const [addProduct, setAddProduct] = useState({
     titleProduct: "",
     price: "",
+    image: "",
   });
 
-  const { titleProduct, price } = addProduct;
+  const { titleProduct, price, image } = addProduct;
 
-  const handleAddProduct = (e) => {
+  const handleChange = (e) => {
     setAddProduct({
       ...addProduct,
-      [e.target.name]: e.target.value,
+      [e.target.name]:
+        e.target.type === "file" ? e.target.files : e.target.value,
     });
+
+    if (e.target.type === "file") {
+      let url = URL.createObjectURL(e.target.files[0]);
+      setPreview(url);
+      setNameUrl(e.target.name[0]);
+    }
   };
+  console.log(addProduct);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = useMutation(async (e) => {
+    try {
+      e.preventDefault();
 
-    const addStaticProduct = {
-      title: addProduct.titleProduct,
-      price: addProduct.price,
-    };
+      // Store data with FormData as object
+      const formData = new FormData();
+      formData.set("image", addProduct.image[0], addProduct.image[0].name);
+      // console.log(image);
+      formData.set("name", addProduct.titleProduct);
+      formData.set("price", addProduct.price);
 
-    console.log(addStaticProduct);
+      console.log(formData);
+      // Configuration
+      const config = {
+        headers: {
+          "Content-type": "multipart/form-data",
+        },
+      };
 
-    Swal.fire({
-      title: `Berhasil`,
-      text: `Product ${addStaticProduct.title} senilai ${addStaticProduct.price} berhasil ditambahkan`,
-      icon: "success",
-      confirmButtonText: "OK",
-    });
-  };
+      // Insert product data
+      const response = await API.post("/product", formData, config);
+      console.log(response);
+      // console.log(response);
+      // navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
   return (
     <>
       <Header className="mb-5" />
-
       <Container fluid className="w-75 mt-5">
         <Row>
           <Col sm={7} className="px-5">
-            <form onSubmit={(e) => handleSubmit(e)}>
+            <form onSubmit={(e) => handleSubmit.mutate(e)}>
               <h1 className="mb-5">Add Product</h1>
+
               <InputText
                 type="text"
                 placeholder="Product Title"
                 name="titleProduct"
-                onChange={handleAddProduct}
+                onChange={handleChange}
                 value={`${titleProduct}`}
               />
               <InputText
                 type="text"
                 placeholder="Price"
                 name="price"
-                onChange={handleAddProduct}
+                onChange={handleChange}
                 value={`${price}`}
               />
-              <InputText type="file" />
+              <InputText
+                type="file"
+                name="image"
+                onChange={handleChange}
+                // value={nameUrl}
+              />
               <ButtonSubmit type="submit" text="AddProduct" />
             </form>
           </Col>
           <Col sm={5} className="text-center">
-            <img src={Boba} alt="" />
+            {preview && (
+              <div>
+                <img
+                  src={preview}
+                  style={{
+                    maxWidth: "150px",
+                    maxHeight: "150px",
+                    objectFit: "cover",
+                  }}
+                  alt={preview}
+                />
+              </div>
+            )}
           </Col>
         </Row>
       </Container>

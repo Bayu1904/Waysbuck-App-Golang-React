@@ -77,8 +77,8 @@ function App() {
       <Route path="/detail/:id" element={<Detail />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/income" element={<Income />} />
-      <Route path="/add-toping" element={<AddToping />} />
-      <Route path="/add-product" element={<AddProduct />} />
+      <Route path="/addToping" element={<AddToping />} />
+      <Route path="/addProduct" element={<AddProduct />} />
     </Routes>
   );
 }

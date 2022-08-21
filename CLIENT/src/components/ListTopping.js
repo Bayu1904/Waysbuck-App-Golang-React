@@ -21,6 +21,7 @@ export default function ListTopping(props) {
   let [topingId, setTopingId] = useState([]);
 
   const handleChange = (e) => {
+    console.log(e);
     let updateToping = [...toping];
     if (e.target.checked) {
       updateToping = [...toping, e.target.name];

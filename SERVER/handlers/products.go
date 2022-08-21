@@ -75,6 +75,8 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	dataContex := r.Context().Value("dataFile")
 	filename := dataContex.(string) // add this code
 
+	fmt.Println(filename)
+
 	price, _ := strconv.Atoi(r.FormValue("price"))
 	qty, _ := strconv.Atoi(r.FormValue("qty"))
 	toping_id, _ := strconv.Atoi(r.FormValue("category_id"))
