@@ -11,6 +11,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type handlerTransaction struct {
@@ -39,8 +41,11 @@ func (h *handlerTransaction) FindTransactions(w http.ResponseWriter, r *http.Req
 func (h *handlerTransaction) GetTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content type", "application/json")
 
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-	transaction, err := h.TransactionRepository.GetTransaction(id)
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	transId := int(userInfo["time"].(float64))
+
+	// id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	transaction, err := h.TransactionRepository.GetTransaction(transId)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
@@ -106,4 +111,44 @@ func (h handlerTransaction) DeleteTransaction(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: 200, Data: data}
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	idTrans := int(userInfo["time"].(float64))
+
+	request := new(transactiondto.UpdateTransaction)
+	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+	}
+
+	transaction, err := h.TransactionRepository.GetTransaction(idTrans)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+	}
+
+	if request.UserID != 0 {
+		transaction.UserID = request.UserID
+	}
+
+	if request.Total != 0 {
+		transaction.Total = request.Total
+	}
+
+	if request.Status != "" {
+		transaction.Status = request.Status
+	}
+
+	_, err = h.TransactionRepository.UpdateTransaction(transaction)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+	}
 }

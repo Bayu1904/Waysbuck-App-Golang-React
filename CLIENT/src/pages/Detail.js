@@ -35,7 +35,7 @@ export default function Detail() {
     if (e.target.checked) {
       updateToping = [...toping, e.target.name];
     } else {
-      updateToping.splice(toping.indexOf(e.target.name));
+      updateToping.splice(toping.indexOf(e.target.name), 1);
     }
     setToping(updateToping);
 
@@ -104,7 +104,7 @@ export default function Detail() {
                       id={items.id}
                       onChange={handleChange}
                       className="toppingCeckbox"
-                      value={items.id}
+                      value={index}
                     />
                     <label htmlFor={items.id}>
                       <img

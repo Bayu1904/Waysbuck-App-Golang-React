@@ -14,10 +14,11 @@ import formatPrice from "../utils/formatPrice";
 export default function ListCard() {
   // const [state] = useContext(UserContext);
   // let isLogin = state.isLogin;
-  let { data: products } = useQuery("products", async () => {
+  let { data: products } = useQuery("productsCache", async () => {
     const response = await API.get("/products");
     return response.data.data;
   });
+  console.log(products);
 
   return (
     <Container className="my-5">

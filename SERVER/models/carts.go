@@ -2,10 +2,10 @@ package models
 
 type Cart struct {
 	ID            int             `json:"id" gorm:"primary_key:auto_increment"`
-	ProductID     int             `json:"product_id"`
+	ProductID     int             `json:"product_id" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Product       ProductResponse `json:"product"`
 	TopingID      []int           `json:"toping_id" form:"toping_id" gorm:"-"`
-	Toping        []Toping        `json:"toping" gorm:"many2many:cart_toping"`
+	Toping        []Toping        `json:"toping" gorm:"many2many:cart_toping;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	TransactionID int             `json:"transcation_id"`
 	Transaction   Transaction     `json:"-"`
 	Qty           int             `json:"qty"`

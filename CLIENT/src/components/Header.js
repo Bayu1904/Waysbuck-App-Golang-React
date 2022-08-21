@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { API } from "../config/api";
 
 import { UserContext } from "../utils/CreateContext";
@@ -21,6 +21,12 @@ import Cup from "../assets/cup.png";
 import Topping from "../assets/topping.png";
 
 function Header() {
+  //transaction Query
+  let { data: transaction } = useQuery("products", async () => {
+    const response = await API.get("/transaction-id");
+    return response.data.data;
+  });
+
   let profilPict = <img src={Foto} alt="122" />;
   // StateRegister
   const [message, setMessage] = useState(null);
@@ -205,6 +211,9 @@ function Header() {
                 <Link to="/Cart">
                   <img src={Cart} alt="Logo" className="mt-3 me-2" />
                 </Link>
+                <span className="rounded-circle">
+                  {transaction?.carts?.length}
+                </span>
                 <NavDropdown
                   id="nav-dropdown-dark-example"
                   title={profilPict}

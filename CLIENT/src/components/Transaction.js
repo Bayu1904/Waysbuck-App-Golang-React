@@ -1,14 +1,25 @@
 import React from "react";
 
 import Logo from "../assets/logo-brand.png";
-import Gambar from "../assets/Rectangle 4boba-1.png";
+import formatPrice from "../utils/formatPrice";
 import Barcode from "../assets/Groupbarcode.png";
+
+import { API } from "../config/api";
+import { useQuery } from "react-query";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 export default function Transaction() {
+  let { data: transaction } = useQuery("transCache", async () => {
+    const response = await API.get("/transaction-id");
+    return response.data.data;
+  });
+  let Total = transaction?.carts?.reduce((a, b) => {
+    return a + b.sub_amount;
+  }, 0);
+  console.log(transaction);
   return (
     <Container
       className="p-4 overflow-auto rounded-4"
@@ -16,36 +27,30 @@ export default function Transaction() {
     >
       <Row>
         <Col md={8}>
-          <Row className="mb-3">
-            <Col sm={4}>
-              <img src={Gambar} alt="aa" style={{ width: 100 }} />
-            </Col>
-            <Col sm={8}>
-              <div>
-                <h5>Coffe Palm</h5>
-                <p>Saturday - 6 Aug 2022</p>
-              </div>
-              <div className="mt-1" style={{ fontSize: 15 }}>
-                <p className="my-1">Topping : Grass Sugar, Grass Jelly</p>
-                <p className="my-1">Price : 60.000</p>
-              </div>
-            </Col>
-          </Row>
-          <Row className="mb-3">
-            <Col sm={4}>
-              <img src={Gambar} alt="aa" style={{ width: 100 }} />
-            </Col>
-            <Col sm={8}>
-              <div>
-                <h5>Coffe Palm</h5>
-                <p>Saturday - 6 Aug 2022</p>
-              </div>
-              <div className="mt-1" style={{ fontSize: 15 }}>
-                <p className="my-1">Topping : Grass Sugar, Grass Jelly</p>
-                <p className="my-1">Price : 60.000</p>
-              </div>
-            </Col>
-          </Row>
+          {transaction?.carts.map((items, index) => (
+            <Row className="mb-3">
+              <Col sm={4}>
+                <img
+                  src={"http://localhost:5000/uploads/" + items.product.image}
+                  alt="aa"
+                  style={{ width: 100 }}
+                />
+              </Col>
+              <Col sm={8}>
+                <div>
+                  <h5>Coffe Palm</h5>
+                  <p>Saturday - 6 Aug 2022</p>
+                </div>
+                <div className="mt-1" style={{ fontSize: 15 }}>
+                  <p className="my-1">
+                    Topping :{" "}
+                    {items.toping.map((items, index) => items.name).join(", ")}
+                  </p>
+                  <p className="my-1">Price : {Total}</p>
+                </div>
+              </Col>
+            </Row>
+          ))}
         </Col>
         <Col md={4} className="text-center">
           <img className="w-50" src={Logo} alt="" />
@@ -59,10 +64,10 @@ export default function Transaction() {
               color: "#00D1FF",
             }}
           >
-            On The Way
+            {transaction?.status}
           </div>
           <div className="text-center w-75 m-auto my-3 fw-normal">
-            Subtotal:Rp.69.000
+            Subtotal:{formatPrice(transaction?.total)}
           </div>
         </Col>
       </Row>
