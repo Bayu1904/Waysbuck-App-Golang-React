@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useMutation } from "react-query";
 // import Swal from "sweetalert2";
@@ -12,13 +11,10 @@ import Header from "../../components/Header";
 // reactBootstrap
 import { Container, Row, Col } from "react-bootstrap";
 
-
 import { API } from "../../config/api";
 // import { UserContext } from "../../utils/CreateContext";
 
 export default function AddProduct() {
-  const navigate = useNavigate();
-
   const [preview, setPreview] = useState(null);
   const [nameUrl, setNameUrl] = useState();
   const [addProduct, setAddProduct] = useState({

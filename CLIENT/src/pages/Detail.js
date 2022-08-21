@@ -1,24 +1,84 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import formatPrice from "../utils/formatPrice";
 import { API } from "../config/api";
-import { useQuery } from "react-query";
+import { useQuery, useMutation } from "react-query";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Toping from "../components/ListTopping";
+import ButtonSubmit from "../components/inputForm/Button";
 
 export default function Detail() {
-  let navigate = useNavigate();
+  // let navigate = useNavigate();
   const { id } = useParams();
 
+  // handle logic for product
   let { data: product } = useQuery("product", async () => {
     const response = await API.get("/product/" + id);
-    // console.log(response);
     return response.data.data;
   });
+
+  let { data: topings } = useQuery("topingsCache", async () => {
+    const response = await API.get("/topings");
+    return response.data.data;
+  });
+
+  // topingHandler
+  const [toping, setToping] = useState([]);
+  const [topingId, setTopingId] = useState([]);
+
+  const handleChange = (e) => {
+    console.log(e);
+    let updateToping = [...toping];
+    if (e.target.checked) {
+      updateToping = [...toping, e.target.name];
+    } else {
+      updateToping.splice(toping.indexOf(e.target.name));
+    }
+    setToping(updateToping);
+
+    let updateTopingId = [...topingId];
+    if (e.target.checked) {
+      updateTopingId = [...topingId, parseInt(e.target.id)];
+    } else {
+      updateTopingId.splice(topingId.indexOf(e.target.value));
+    }
+    setTopingId(updateTopingId);
+  };
+
+  let resultTotal = toping.reduce((a, b) => {
+    return a + parseInt(b);
+  }, 0);
+
+  // Handle for Add to cart
+  const handleAddToCart = useMutation(async (e) => {
+    try {
+      e.preventDefault();
+
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+
+      const data = {
+        product_id: product.id,
+        toping_id: topingId,
+        sub_amount: resultTotal + product?.price,
+      };
+
+      const body = JSON.stringify(data);
+
+      await API.post("/cart", body, config);
+
+      console.log(topingId);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
   return (
     <div>
       <Header />
@@ -30,7 +90,49 @@ export default function Detail() {
           <Col md={7}>
             <h1 style={{ color: "#BD0707" }}>{product?.name}</h1>
             <h4 style={{ color: "#974A4A" }}>{formatPrice(product?.price)}</h4>
-            <Toping product={product} />
+
+            <Container className="mt-5">
+              <h4 className="mb-4" style={{ color: "#974A4A" }}>
+                Toping
+              </h4>
+              <Row>
+                {topings?.map((items, index) => (
+                  <Col md={3} className="text-center mb-3" key={index}>
+                    <input
+                      type="checkbox"
+                      name={items.price}
+                      id={items.id}
+                      onChange={handleChange}
+                      className="toppingCeckbox"
+                      value={items.id}
+                    />
+                    <label htmlFor={items.id}>
+                      <img
+                        src={items.image}
+                        alt="123"
+                        id="toping"
+                        style={{ cursor: "pointer", width: "100px" }}
+                      />
+                    </label>
+                    <p htmlFor="toping">{items.name}</p>
+                  </Col>
+                ))}
+              </Row>
+              <Row className="mt-5">
+                <Col>
+                  <h4 style={{ color: "#974A4A" }}>Total</h4>
+                </Col>
+                <Col>
+                  <h4 className="text-end" style={{ color: "#974A4A" }}>
+                    {formatPrice(resultTotal + product?.price)}
+                  </h4>
+                </Col>
+              </Row>
+              <ButtonSubmit
+                text="Add to Cart"
+                onClick={(e) => handleAddToCart.mutate(e)}
+              />
+            </Container>
           </Col>
         </Row>
       </Container>

@@ -1,7 +1,6 @@
 import React from "react";
 import { useState } from "react";
 import { Col, Row, Container } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
 import formatPrice from "../utils/formatPrice";
 import "../assets/Topping/StyleToping.css";
 import { API } from "../config/api";
@@ -10,7 +9,6 @@ import { useQuery, useMutation } from "react-query";
 import ButtonSubmit from "../components/inputForm/Button";
 
 export default function ListTopping(props) {
-  let navigate = useNavigate();
   let { data: topings } = useQuery("topingsCache", async () => {
     const response = await API.get("/topings");
     return response.data.data;
