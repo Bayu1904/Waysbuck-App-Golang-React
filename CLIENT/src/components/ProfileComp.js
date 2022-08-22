@@ -1,5 +1,7 @@
 import React from "react";
 import Transaction from "./Transaction";
+import { API } from "../config/api";
+import { useQuery } from "react-query";
 
 import profile from "../assets/Rectangle 12profile.png";
 import Container from "react-bootstrap/Container";
@@ -7,6 +9,10 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 export default function ProfileComp() {
+  let { data: transaction } = useQuery("transCache", async () => {
+    const response = await API.get("/transaction-id");
+    return response.data.data;
+  });
   return (
     <Container fluid className="w-75 m-auto mt-5">
       <Row>
@@ -26,13 +32,13 @@ export default function ProfileComp() {
                 <p className="mb-0" style={{ color: "#613D2B", fontSize: 25 }}>
                   Full Name
                 </p>
-                <p>Dandi Saputra</p>
+                <p>{transaction?.user?.name}</p>
               </div>
               <div className="fw-semibold">
                 <p className="mb-0" style={{ color: "#613D2B", fontSize: 25 }}>
                   Email
                 </p>
-                <p>Dandi@mail.com</p>
+                <p>{transaction?.user?.email}</p>
               </div>
             </Col>
           </Row>

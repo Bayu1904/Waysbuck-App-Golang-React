@@ -2,8 +2,15 @@ import React from "react";
 import Table from "react-bootstrap/Table";
 import { Container } from "react-bootstrap";
 import Header from "./Header";
+import { API } from "../config/api";
+import { useQuery } from "react-query";
 
 export default function Income() {
+  let { data: transaction } = useQuery("transactionsCache", async () => {
+    const response = await API.get("/transactions");
+    return response.data.data;
+  });
+
   return (
     <>
       <Header />
@@ -14,20 +21,27 @@ export default function Income() {
               <th>No</th>
               <th>Name</th>
               <th>Address</th>
-              <th>Post Code</th>
+              <th>email</th>
               <th>Income</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>Sugeng no Pants</td>
-              <td>Cileungsi</td>
-              <td>189728</td>
-              <td>Rp.16.000</td>
-              <td>On the Way</td>
-            </tr>
+            {transaction?.map((item, index) => (
+              <tr
+                // onClick={() => handleShow(item?.id)}
+                key={index}
+                // style={{ display: "none" }}
+                className={item?.status === "" ? "fd" : ""}
+              >
+                <td>{index + 1}</td>
+                <td>{item?.user.name}</td>
+                <td>{item?.user.profile?.address}</td>
+                <td>{item?.user.email}</td>
+                <td>{item?.total}</td>
+                <td>{item?.status}</td>
+              </tr>
+            ))}
           </tbody>
         </Table>
       </Container>

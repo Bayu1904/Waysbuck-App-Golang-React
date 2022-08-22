@@ -205,7 +205,7 @@ function Header() {
         </Navbar.Brand>
 
         <div className="d-flex">
-          {state.isLogin ? (
+          {state.user.status === "customer" ? (
             <>
               <Nav className="me-auto">
                 <Link to="/Cart">
@@ -236,7 +236,7 @@ function Header() {
                 </NavDropdown>
               </Nav>
             </>
-          ) : state.isAdmin ? (
+          ) : state.user.status === "admin" ? (
             <>
               <Nav className="me-auto">
                 <NavDropdown

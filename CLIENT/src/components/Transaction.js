@@ -31,22 +31,24 @@ export default function Transaction() {
             <Row className="mb-3">
               <Col sm={4}>
                 <img
-                  src={"http://localhost:5000/uploads/" + items.product.image}
+                  src={"http://localhost:5000/uploads/" + items?.product.image}
                   alt="aa"
                   style={{ width: 100 }}
                 />
               </Col>
               <Col sm={8}>
                 <div>
-                  <h5>Coffe Palm</h5>
-                  <p>Saturday - 6 Aug 2022</p>
+                  <h5>{items?.product.name}</h5>
+                  <p>ID Order : {items.id}</p>
                 </div>
                 <div className="mt-1" style={{ fontSize: 15 }}>
                   <p className="my-1">
                     Topping :{" "}
-                    {items.toping.map((items, index) => items.name).join(", ")}
+                    {items?.toping.map((items, index) => items.name).join(", ")}
                   </p>
-                  <p className="my-1">Price : {Total}</p>
+                  <p className="my-1">
+                    Price : {formatPrice(items.sub_amount)}
+                  </p>
                 </div>
               </Col>
             </Row>
@@ -67,7 +69,7 @@ export default function Transaction() {
             {transaction?.status}
           </div>
           <div className="text-center w-75 m-auto my-3 fw-normal">
-            Subtotal:{formatPrice(transaction?.total)}
+            Subtotal:{formatPrice(Total)}
           </div>
         </Col>
       </Row>
