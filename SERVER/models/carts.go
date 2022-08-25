@@ -6,7 +6,7 @@ type Cart struct {
 	Product       ProductResponse `json:"product"`
 	TopingID      []int           `json:"toping_id" form:"toping_id" gorm:"-"`
 	Toping        []Toping        `json:"toping" gorm:"many2many:cart_toping;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	TransactionID int             `json:"transcation_id"`
+	TransactionID int             `json:"transaction_id"`
 	Transaction   Transaction     `json:"-"`
 	Qty           int             `json:"qty"`
 	SubAmount     int             `json:"sub_amount"`

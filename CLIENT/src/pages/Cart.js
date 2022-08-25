@@ -15,7 +15,7 @@ export default function Cart() {
   let navigate = useNavigate();
   // Get data transaction by ID
   let { data: transaction, refetch } = useQuery("transCache", async () => {
-    const response = await API.get("/transaction-id");
+    const response = await API.get("/transaction-status");
     return response.data.data;
   });
 
@@ -33,6 +33,7 @@ export default function Cart() {
     status: "failed",
     total: Total,
   };
+  console.log(form);
 
   const handleSubmit = useMutation(async (e) => {
     const config = {
@@ -40,6 +41,7 @@ export default function Cart() {
         "Content-type": "application/json",
       },
     };
+
     // Insert transaction data
     const body = JSON.stringify(form);
 
@@ -47,7 +49,7 @@ export default function Cart() {
 
     console.log(response);
 
-    const token = response.data.data.token;
+    const token = response.data.data;
     console.log(token);
     window.snap.pay(token, {
       onSuccess: function (result) {
@@ -76,7 +78,7 @@ export default function Cart() {
     //change this to the script source you want to load, for example this is snap.js sandbox env
     const midtransScriptUrl = "https://app.sandbox.midtrans.com/snap/snap.js";
     //change this according to your client-key
-    const myMidtransClientKey = " ";
+    const myMidtransClientKey = "Client key here ...";
 
     let scriptTag = document.createElement("script");
     scriptTag.src = midtransScriptUrl;

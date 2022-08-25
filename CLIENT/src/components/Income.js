@@ -32,7 +32,7 @@ export default function Income() {
                 // onClick={() => handleShow(item?.id)}
                 key={index}
                 // style={{ display: "none" }}
-                className={item?.status === "" ? "fd" : ""}
+                className={item?.carts.length === 0 ? "fd" : ""}
               >
                 <td>{index + 1}</td>
                 <td>{item?.user.name}</td>

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { API } from "../../config/api";
-import {useMutation } from "react-query"
-import Swal from 'sweetalert2'
+import { useMutation } from "react-query";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 
 // components
 import InputText from "../../components/inputForm/InputText";
@@ -15,13 +16,15 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 export default function AddTopping() {
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
   const [nameUrl, setNameUrl] = useState("");
   const [addTopping, setAddTopping] = useState({
     name: "",
     price: "",
     image: "",
-  })
+  });
 
   const handleChange = (e) => {
     setAddTopping({
@@ -38,7 +41,7 @@ export default function AddTopping() {
     }
   };
 
-  console.log(addTopping)
+  console.log(addTopping);
   const handleSubmit = useMutation(async (e) => {
     try {
       e.preventDefault();
@@ -66,11 +69,15 @@ export default function AddTopping() {
       //   icon: 'success',
       //   confirmButtonText: 'OK'
       // })
+      alert("berhasil menambahkan product");
+      await delay(500);
+      // regClose();
+      navigate("/income");
     } catch (error) {
       console.log(error);
     }
   });
-  
+
   return (
     <>
       <Header className="mb-5" />
@@ -80,14 +87,24 @@ export default function AddTopping() {
           <Col sm={7} className="px-5">
             <form onSubmit={(e) => handleSubmit.mutate(e)}>
               <h1 className="mb-5">Add Topping</h1>
-              <InputText type="text" placeholder="Product Title" name="name" onChange={handleChange}/>
-              <InputText type="text" placeholder="Price" name="price" onChange={handleChange}/>
+              <InputText
+                type="text"
+                placeholder="Product Title"
+                name="name"
+                onChange={handleChange}
+              />
+              <InputText
+                type="text"
+                placeholder="Price"
+                name="price"
+                onChange={handleChange}
+              />
               <InputText type="file" name="image" onChange={handleChange} />
               <ButtonSubmit type="submit" text="AddTopping" />
             </form>
           </Col>
           <Col sm={5} className="text-center">
-          {preview && (
+            {preview && (
               <div>
                 <img
                   src={preview}

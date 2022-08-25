@@ -20,10 +20,10 @@ import ButtonSubmit from "./inputForm/Button";
 import Cup from "../assets/cup.png";
 import Topping from "../assets/topping.png";
 
-function Header() {
+function Header(props) {
   //transaction Query
   let { data: transaction } = useQuery("products", async () => {
-    const response = await API.get("/transaction-id");
+    const response = await API.get("/transaction-status");
     return response.data.data;
   });
 
@@ -212,6 +212,7 @@ function Header() {
                   <img src={Cart} alt="Logo" className="mt-3 me-2" />
                 </Link>
                 <span className="rounded-circle">
+                  {/* {props.count} */}
                   {transaction?.carts?.length}
                 </span>
                 <NavDropdown

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useMutation } from "react-query";
+import { useNavigate } from "react-router-dom";
 // import Swal from "sweetalert2";
 
 // components
@@ -15,6 +16,7 @@ import { API } from "../../config/api";
 // import { UserContext } from "../../utils/CreateContext";
 
 export default function AddProduct() {
+  const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
   const [nameUrl, setNameUrl] = useState();
   const [addProduct, setAddProduct] = useState({
@@ -43,6 +45,7 @@ export default function AddProduct() {
   const handleSubmit = useMutation(async (e) => {
     try {
       e.preventDefault();
+      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
       // Store data with FormData as object
       const formData = new FormData();
@@ -60,9 +63,11 @@ export default function AddProduct() {
 
       // Insert product data
       const response = await API.post("/product", formData, config);
-      console.log(response);
       // console.log(response);
-      // navigate("/");
+      alert("berhasil menambahkan product");
+      await delay(500);
+      // regClose();
+      navigate("/income");
     } catch (error) {
       console.log(error);
     }

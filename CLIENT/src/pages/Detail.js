@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import formatPrice from "../utils/formatPrice";
 import { API } from "../config/api";
 import { useQuery, useMutation } from "react-query";
@@ -11,7 +11,7 @@ import Col from "react-bootstrap/Col";
 import ButtonSubmit from "../components/inputForm/Button";
 
 export default function Detail() {
-  // let navigate = useNavigate();
+  let navigate = useNavigate();
   const { id } = useParams();
 
   // handle logic for product
@@ -25,9 +25,25 @@ export default function Detail() {
     return response.data.data;
   });
 
+  // push order
+  // const [count, setCount] = useState(0);
+  // useEffect(() => {
+  //   return count + 1;
+  // });
+
   // topingHandler
   const [toping, setToping] = useState([]);
   const [topingId, setTopingId] = useState([]);
+
+  // useEffect(async () => {
+  //   try {
+  //     const dataTrans = await API.get("/transaction-status");
+  //     setTransbyIdStatus(dataTrans.data.data);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // }, [setTransbyIdStatus]);
+  // console.log(transByIdStatus);
 
   const handleChange = (e) => {
     console.log(e);
@@ -52,6 +68,12 @@ export default function Detail() {
     return a + parseInt(b);
   }, 0);
 
+  let { data: transaction_id } = useQuery("trans", async () => {
+    const response = await API.get("/transaction-status");
+    return response.data.data;
+  });
+  console.log(transaction_id);
+
   // Handle for Add to cart
   const handleAddToCart = useMutation(async (e) => {
     try {
@@ -62,18 +84,20 @@ export default function Detail() {
           "Content-type": "application/json",
         },
       };
-
+      if (transaction_id === undefined) {
+        API.post("/transaction");
+      }
       const data = {
         product_id: product.id,
         toping_id: topingId,
         sub_amount: resultTotal + product?.price,
+        transaction_id: transaction_id.id,
       };
 
       const body = JSON.stringify(data);
 
       await API.post("/cart", body, config);
-
-      console.log(topingId);
+      navigate("/");
     } catch (error) {
       console.log(error);
     }

@@ -128,12 +128,6 @@ func (h *handlerAuth) Login(w http.ResponseWriter, r *http.Request) {
 		Status: user.Status,
 	}
 
-	createTrans := models.Transaction{
-		ID:     IdTrans,
-		UserID: user.ID,
-	}
-	h.AuthRepository.CreateTransNil(createTrans)
-
 	w.Header().Set("Content-Type", "application/json")
 	response := dto.SuccessResult{Code: http.StatusOK, Data: loginResponse}
 	json.NewEncoder(w).Encode(response)

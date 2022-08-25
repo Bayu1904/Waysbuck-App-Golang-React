@@ -6,6 +6,8 @@ import (
 	"be-waybucks/models"
 	"be-waybucks/repositories"
 	"encoding/json"
+	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -14,7 +16,6 @@ import (
 	"github.com/midtrans/midtrans-go/coreapi"
 	"github.com/midtrans/midtrans-go/snap"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -52,7 +53,7 @@ func (h *handlerTransaction) GetTransaction(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content type", "application/json")
 
 	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
-	transId := int(userInfo["time"].(float64))
+	transId := int(userInfo["id"].(float64))
 
 	// id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	transaction, err := h.TransactionRepository.GetTransaction(transId)
@@ -70,35 +71,78 @@ func (h *handlerTransaction) GetTransaction(w http.ResponseWriter, r *http.Reque
 func (h *handlerTransaction) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	request := new(transactiondto.CreateTransaction)
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-	}
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	idUser := int(userInfo["id"].(float64))
 
-	validate := validator.New()
-	err := validate.Struct(request)
+	var request transactiondto.UpdateTransaction
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	var TransIdIsMatch = false
+	var TransactionId int
+	for !TransIdIsMatch {
+		TransactionId = idUser + rand.Intn(10000) - rand.Intn(100)
+		transactionData, _ := h.TransactionRepository.GetTransaction(TransactionId)
+		if transactionData.ID == 0 {
+			TransIdIsMatch = true
+		}
 	}
 
 	transaction := models.Transaction{
-		UserID: request.UserID,
+		ID:     TransactionId,
+		UserID: idUser,
+		Status: "unpay",
+		Total:  request.Total,
 	}
 
 	data, err := h.TransactionRepository.CreateTransaction(transaction)
+	fmt.Println(data)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 	}
 
+	dataTransactions, err := h.TransactionRepository.GetTransaction(data.ID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	// Request payment token from midtrans here ...
+	// 1. Initiate Snap client
+	var s = snap.Client{}
+	s.New(os.Getenv("SERVER_KEY"), midtrans.Sandbox)
+	// Use to midtrans.Production if you want Production Environment (accept real transaction).
+
+	// 2. Initiate Snap request param
+	req := &snap.Request{
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  strconv.Itoa(dataTransactions.ID),
+			GrossAmt: int64(dataTransactions.Total),
+		},
+		CreditCard: &snap.CreditCardDetails{
+			Secure: true,
+		},
+		CustomerDetail: &midtrans.CustomerDetails{
+			FName: dataTransactions.User.Name,
+			Email: dataTransactions.User.Email,
+		},
+	}
+
+	// 3. Execute request create Snap transaction to Midtrans Snap API
+	snapResp, _ := s.CreateTransaction(req)
+
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: 200, Data: data}
+	response := dto.SuccessResult{Code: 200, Data: snapResp}
 	json.NewEncoder(w).Encode(response)
+
 }
 
 func (h handlerTransaction) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +171,7 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json")
 
 	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
-	idTrans := int(userInfo["time"].(float64))
+	idTrans := int(userInfo["id"].(float64))
 
 	request := new(transactiondto.UpdateTransaction)
 	if err := json.NewDecoder(r.Body).Decode(request); err != nil {
@@ -136,7 +180,7 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		json.NewEncoder(w).Encode(response)
 	}
 
-	transaction, err := h.TransactionRepository.GetTransaction(idTrans)
+	transaction, err := h.TransactionRepository.FindbyIDTransaction(idTrans, "unpay")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -151,7 +195,7 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		transaction.Total = request.Total
 	}
 
-	if request.Status != "" {
+	if request.Status != "unpay" {
 		transaction.Status = request.Status
 	}
 
@@ -162,38 +206,56 @@ func (h *handlerTransaction) UpdateTransaction(w http.ResponseWriter, r *http.Re
 		json.NewEncoder(w).Encode(response)
 	}
 
-	dataTransactions, err := h.TransactionRepository.GetTransaction(idTrans)
+	dataTransactions, err := h.TransactionRepository.FindbyIDTransaction(idTrans, "unpay")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
-	// 1. Initiate Snap client
-	var s = snap.Client{}
-	s.New("SB-Mid-server-4eCWOLTHCsl1kjXWS_5hPoWZ", midtrans.Sandbox)
-	// Use to midtrans.Production if you want Production Environment (accept real transaction).
+	// // 1. Initiate Snap client
+	// var s = snap.Client{}
+	// s.New("SB-Mid-server-4eCWOLTHCsl1kjXWS_5hPoWZ", midtrans.Sandbox)
+	// // Use to midtrans.Production if you want Production Environment (accept real transaction).
 
-	// 2. Initiate Snap request param
-	req := &snap.Request{
-		TransactionDetails: midtrans.TransactionDetails{
-			OrderID:  strconv.Itoa(idTrans),
-			GrossAmt: int64(dataTransactions.Total),
-		},
-		CreditCard: &snap.CreditCardDetails{
-			Secure: true,
-		},
-		CustomerDetail: &midtrans.CustomerDetails{
-			FName: dataTransactions.User.Name,
-			Email: dataTransactions.User.Email,
-		},
-	}
+	// // 2. Initiate Snap request param
+	// req := &snap.Request{
+	// 	TransactionDetails: midtrans.TransactionDetails{
+	// 		OrderID:  strconv.Itoa(idTrans),
+	// 		GrossAmt: int64(dataTransactions.Total),
+	// 	},
+	// 	CreditCard: &snap.CreditCardDetails{
+	// 		Secure: true,
+	// 	},
+	// 	CustomerDetail: &midtrans.CustomerDetails{
+	// 		FName: dataTransactions.User.Name,
+	// 		Email: dataTransactions.User.Email,
+	// 	},
+	// }
 
-	// 3. Execute request create Snap transaction to Midtrans Snap API
-	snapResp, _ := s.CreateTransaction(req)
+	// // 3. Execute request create Snap transaction to Midtrans Snap API
+	// snapResp, _ := s.CreateTransaction(req)
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: 200, Data: snapResp}
+	response := dto.SuccessResult{Code: 200, Data: dataTransactions}
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *handlerTransaction) FindbyIDTransaction(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content type", "application/json")
+
+	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
+	userId := int(userInfo["id"].(float64))
+	// id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	transaction, err := h.TransactionRepository.FindbyIDTransaction(userId, "unpay")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response := dto.SuccessResult{Code: 200, Data: transaction}
 	json.NewEncoder(w).Encode(response)
 }
 

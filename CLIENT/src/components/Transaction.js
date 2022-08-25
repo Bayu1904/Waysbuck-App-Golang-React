@@ -13,13 +13,13 @@ import Col from "react-bootstrap/Col";
 
 export default function Transaction() {
   let { data: transaction } = useQuery("transCache", async () => {
-    const response = await API.get("/transaction-id");
+    const response = await API.get("/transaction-status");
     return response.data.data;
   });
   let Total = transaction?.carts?.reduce((a, b) => {
     return a + b.sub_amount;
   }, 0);
-  console.log(transaction);
+  // console.log(transaction);
   return (
     <Container
       className="p-4 overflow-auto rounded-4"

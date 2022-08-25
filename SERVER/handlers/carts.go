@@ -11,7 +11,6 @@ import (
 
 	// "github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
 
@@ -61,9 +60,6 @@ func (h *handlerCart) GetCart(w http.ResponseWriter, r *http.Request) {
 func (h *handlerCart) CreateCart(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	userInfo := r.Context().Value("userInfo").(jwt.MapClaims)
-	idTrans := int(userInfo["time"].(float64))
-
 	request := new(cartdto.CartRequest)
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -84,7 +80,7 @@ func (h *handlerCart) CreateCart(w http.ResponseWriter, r *http.Request) {
 	cartForm := models.Cart{
 		ProductID:     request.ProductID,
 		TopingID:      request.TopingID,
-		TransactionID: idTrans,
+		TransactionID: request.TransactionID,
 		Qty:           request.Qty,
 		SubAmount:     request.SubAmount,
 	}
@@ -101,7 +97,7 @@ func (h *handlerCart) CreateCart(w http.ResponseWriter, r *http.Request) {
 
 	cart := models.Cart{
 		ProductID:     request.ProductID,
-		TransactionID: idTrans,
+		TransactionID: request.TransactionID,
 		Qty:           request.Qty,
 		SubAmount:     request.SubAmount,
 		Toping:        toping,
