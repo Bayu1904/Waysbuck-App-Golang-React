@@ -1,9 +1,9 @@
 package transactiondto
 
 type CreateTransaction struct {
-	ID     int   `json:"id"`
-	UserID int   `json:"user_id" form:"user_id"`
-	Total  int64 `gorm:"type: int" json:"price"`
+	ID     int    `json:"id"`
+	UserID int    `json:"user_id" form:"user_id"`
+	Status string `json:"status"`
 }
 
 type UpdateTransaction struct {

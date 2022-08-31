@@ -24,16 +24,17 @@ export default function Cart() {
     refetch();
   };
 
+  // total Payment
   let Total = transaction?.carts?.reduce((a, b) => {
     return a + b.sub_amount;
   }, 0);
+  console.log(Total);
 
   // pay Handler
   const form = {
     status: "failed",
     total: Total,
   };
-  console.log(form);
 
   const handleSubmit = useMutation(async (e) => {
     const config = {
@@ -49,7 +50,7 @@ export default function Cart() {
 
     console.log(response);
 
-    const token = response.data.data;
+    const token = response.data.data.token;
     console.log(token);
     window.snap.pay(token, {
       onSuccess: function (result) {
@@ -78,7 +79,7 @@ export default function Cart() {
     //change this to the script source you want to load, for example this is snap.js sandbox env
     const midtransScriptUrl = "https://app.sandbox.midtrans.com/snap/snap.js";
     //change this according to your client-key
-    const myMidtransClientKey = "Client key here ...";
+    const myMidtransClientKey = process.env.REACT_APP_MIDTRANS_CLIENT_KEY;
 
     let scriptTag = document.createElement("script");
     scriptTag.src = midtransScriptUrl;
@@ -115,9 +116,7 @@ export default function Cart() {
                       }}
                     >
                       <img
-                        src={
-                          "http://localhost:5000/uploads/" + item.product.image
-                        }
+                        src={item.product?.image}
                         alt="img"
                         style={{ width: "100%" }}
                       />

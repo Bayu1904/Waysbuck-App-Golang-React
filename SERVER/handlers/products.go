@@ -8,8 +8,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
+	"context"
+
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
@@ -36,10 +41,6 @@ func (h *handlerProduct) FindProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i, p := range products {
-		products[i].Image = path_file + p.Image
-	}
-
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: products}
 	json.NewEncoder(w).Encode(response)
@@ -58,7 +59,6 @@ func (h *handlerProduct) GetProduct(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	product.Image = path_file + product.Image
 
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseProduct(product)}
@@ -73,19 +73,13 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	userId := int(userInfo["id"].(float64))
 
 	dataContex := r.Context().Value("dataFile")
-	filename := dataContex.(string) // add this code
-
-	fmt.Println(filename)
+	filepath := dataContex.(string)
 
 	price, _ := strconv.Atoi(r.FormValue("price"))
-	qty, _ := strconv.Atoi(r.FormValue("qty"))
-	toping_id, _ := strconv.Atoi(r.FormValue("category_id"))
 	request := productdto.ProductRequest{
-		Name:     r.FormValue("name"),
-		Desc:     r.FormValue("desc"),
-		Price:    price,
-		Qty:      qty,
-		TopingID: toping_id,
+		Name:  r.FormValue("name"),
+		Price: price,
+		Image: filepath,
 	}
 
 	validation := validator.New()
@@ -97,11 +91,25 @@ func (h *handlerProduct) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var ctx = context.Background()
+	var CLOUD_NAME = os.Getenv("CLOUD_NAME")
+	var API_KEY = os.Getenv("API_KEY")
+	var API_SECRET = os.Getenv("API_SECRET")
+
+	cld, _ := cloudinary.NewFromParams(CLOUD_NAME, API_KEY, API_SECRET)
+
+	// Upload file to Cloudinary ...
+	resp, err := cld.Upload.Upload(ctx, filepath, uploader.UploadParams{Folder: "waysbuck"})
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	product := models.Product{
 		Name:   request.Name,
 		Desc:   request.Desc,
 		Price:  request.Price,
-		Image:  filename, // add this code
+		Image:  resp.SecureURL,
 		Qty:    request.Qty,
 		UserID: userId,
 	}

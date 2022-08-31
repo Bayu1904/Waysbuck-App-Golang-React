@@ -13,8 +13,9 @@ type TransactionRepository interface {
 	DeleteTransaction(transaction models.Transaction) (models.Transaction, error)
 	UpdateTransaction(transaction models.Transaction) (models.Transaction, error)
 	UpdateTransactions(status string, ID string) error
-	FindbyIDTransaction(TransactionId int, Status string) (models.Transaction, error)
-	GetOneTransaction(ID int) (models.Transaction, error)
+	GetOneTransaction(ID string) (models.Transaction, error)
+	FindbyIDTransaction(UserID int, Status string) (models.Transaction, error)
+	AllProductById(UserID int) ([]models.Transaction, error)
 }
 
 func RepositoryTransaction(db *gorm.DB) *repository {
@@ -33,13 +34,13 @@ func (r *repository) GetTransaction(ID int) (models.Transaction, error) {
 }
 
 func (r *repository) CreateTransaction(transaction models.Transaction) (models.Transaction, error) {
-	err := r.db.Create(&transaction).Error
+	err := r.db.Preload("User").Preload("Carts").Preload("Carts.Product").Preload("Carts.Toping").Create(&transaction).Error
 
 	return transaction, err
 }
 
 func (r *repository) UpdateTransaction(transaction models.Transaction) (models.Transaction, error) {
-	err := r.db.Save(&transaction).Error
+	err := r.db.Preload("User").Preload("Carts").Preload("Carts.Product").Preload("Carts.Toping").Save(&transaction).Error
 
 	return transaction, err
 }
@@ -52,14 +53,14 @@ func (r *repository) DeleteTransaction(transaction models.Transaction) (models.T
 
 func (r *repository) UpdateTransactions(status string, ID string) error {
 	var transaction models.Transaction
-	r.db.Preload("Product").First(&transaction, ID)
+	r.db.Preload("User").Preload("Carts").Preload("Carts.Product").Preload("Carts.Toping").First(&transaction, ID)
 
 	// If is different & Status is "success" decrement product quantity
 	if status != transaction.Status && status == "success" {
-		var product models.Product
-		r.db.First(&product, transaction.ID)
-		// product.Qty = product.Qty - 1
-		r.db.Save(&product)
+		// var product models.Product
+		// r.db.First(&product, transaction.ID)
+		// // product.Qty = product.Qty - 1
+		// r.db.Save(&product)
 	}
 
 	transaction.Status = status
@@ -69,16 +70,23 @@ func (r *repository) UpdateTransactions(status string, ID string) error {
 	return err
 }
 
-func (r *repository) FindbyIDTransaction(TransactionId int, Status string) (models.Transaction, error) {
+func (r *repository) FindbyIDTransaction(UserID int, Status string) (models.Transaction, error) {
 	var transaction models.Transaction
-	err := r.db.Preload("User").Preload("Carts").Preload("Carts.Product").Preload("Carts.Toping").Where("ID = ? AND status = ?", TransactionId, Status).First(&transaction).Error
+	err := r.db.Preload("User").Preload("Carts").Preload("Carts.Product").Preload("Carts.Toping").Where("user_id = ? AND status = ?", UserID, Status).First(&transaction).Error
 
 	return transaction, err
 }
 
-func (r *repository) GetOneTransaction(ID int) (models.Transaction, error) {
+func (r *repository) GetOneTransaction(ID string) (models.Transaction, error) {
 	var transaction models.Transaction
 	err := r.db.Preload("Product").Preload("Product.User").Preload("Buyer").Preload("Seller").First(&transaction, "id = ?", ID).Error
+
+	return transaction, err
+}
+
+func (r *repository) AllProductById(UserID int) ([]models.Transaction, error) {
+	var transaction []models.Transaction
+	err := r.db.Preload("User").Preload("Carts").Preload("Carts.Product").Preload("Carts.Toping").Find(&transaction, "user_id = ?", UserID).Error
 
 	return transaction, err
 }

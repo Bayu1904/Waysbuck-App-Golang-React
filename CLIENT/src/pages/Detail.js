@@ -25,25 +25,9 @@ export default function Detail() {
     return response.data.data;
   });
 
-  // push order
-  // const [count, setCount] = useState(0);
-  // useEffect(() => {
-  //   return count + 1;
-  // });
-
   // topingHandler
   const [toping, setToping] = useState([]);
   const [topingId, setTopingId] = useState([]);
-
-  // useEffect(async () => {
-  //   try {
-  //     const dataTrans = await API.get("/transaction-status");
-  //     setTransbyIdStatus(dataTrans.data.data);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }, [setTransbyIdStatus]);
-  // console.log(transByIdStatus);
 
   const handleChange = (e) => {
     console.log(e);
@@ -72,21 +56,20 @@ export default function Detail() {
     const response = await API.get("/transaction-status");
     return response.data.data;
   });
-  console.log(transaction_id);
 
   // Handle for Add to cart
   const handleAddToCart = useMutation(async (e) => {
     try {
       e.preventDefault();
+      if (transaction_id === undefined) {
+        API.post("/transaction");
+      }
 
       const config = {
         headers: {
           "Content-type": "application/json",
         },
       };
-      if (transaction_id === undefined) {
-        API.post("/transaction");
-      }
       const data = {
         product_id: product.id,
         toping_id: topingId,
@@ -96,7 +79,7 @@ export default function Detail() {
 
       const body = JSON.stringify(data);
 
-      await API.post("/cart", body, config);
+      API.post("/cart", body, config);
       navigate("/");
     } catch (error) {
       console.log(error);

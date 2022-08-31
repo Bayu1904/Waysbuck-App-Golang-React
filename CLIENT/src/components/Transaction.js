@@ -12,48 +12,51 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
 export default function Transaction() {
-  let { data: transaction } = useQuery("transCache", async () => {
-    const response = await API.get("/transaction-status");
+  let { data: transactions } = useQuery("transCache", async () => {
+    const response = await API.get("/transaction1");
     return response.data.data;
   });
-  let Total = transaction?.carts?.reduce((a, b) => {
-    return a + b.sub_amount;
-  }, 0);
-  // console.log(transaction);
+  // let Total = transaction?.carts?.reduce((a, b) => {
+  //   return a + b.sub_amount;
+  // }, 0);
+  console.log(transactions);
   return (
+    <>
+    {transactions?.map((items, index) => (
     <Container
-      className="p-4 overflow-auto rounded-4"
+      className="p-4 overflow-auto rounded-4 mb-2"
       style={{ backgroundColor: "#F6DADA" }}
-    >
+      >
       <Row>
+          {items?.carts?.map((cart, idx) => (
         <Col md={8}>
-          {transaction?.carts.map((items, index) => (
             <Row className="mb-3">
               <Col sm={4}>
                 <img
-                  src={"http://localhost:5000/uploads/" + items?.product.image}
+                  src={cart?.product?.image}
                   alt="aa"
                   style={{ width: 100 }}
                 />
               </Col>
               <Col sm={8}>
                 <div>
-                  <h5>{items?.product.name}</h5>
-                  <p>ID Order : {items.id}</p>
+                  <h5>{cart?.product?.name}</h5>
+                  <p>ID Order : {cart?.id}</p>
                 </div>
                 <div className="mt-1" style={{ fontSize: 15 }}>
                   <p className="my-1">
                     Topping :{" "}
-                    {items?.toping.map((items, index) => items.name).join(", ")}
+                    {cart?.toping.map((items, index) => items?.name).join(", ")}
                   </p>
                   <p className="my-1">
-                    Price : {formatPrice(items.sub_amount)}
+                    Price : {formatPrice(cart?.sub_amount)}
                   </p>
                 </div>
               </Col>
             </Row>
-          ))}
         </Col>
+          ))}
+          
         <Col md={4} className="text-center">
           <img className="w-50" src={Logo} alt="" />
           <br />
@@ -66,13 +69,16 @@ export default function Transaction() {
               color: "#00D1FF",
             }}
           >
-            {transaction?.status}
+            {items?.status}
           </div>
           <div className="text-center w-75 m-auto my-3 fw-normal">
-            Subtotal:{formatPrice(Total)}
+            Subtotal:{formatPrice(items?.total)}
           </div>
-        </Col>
-      </Row>
+              </Col>
+          </Row>
     </Container>
+    ))}
+      
+    </>
   );
 }

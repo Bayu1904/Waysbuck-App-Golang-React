@@ -6,8 +6,15 @@ import (
 	"be-waybucks/models"
 	"be-waybucks/repositories"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
+
+	"context"
+
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 
 	// "github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
@@ -31,10 +38,6 @@ func (h *handlerToping) FindToping(w http.ResponseWriter, r *http.Request) {
 		response := dto.ErrorResult{Code: http.StatusBadRequest, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
-	}
-
-	for i, p := range topings {
-		topings[i].Image = path_file + p.Image
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -69,22 +72,36 @@ func (h *handlerToping) CreateToping(w http.ResponseWriter, r *http.Request) {
 	userId := int(userInfo["id"].(float64))
 
 	dataContex := r.Context().Value("dataFile")
-	filename := dataContex.(string)
-	price, _ := strconv.Atoi(r.FormValue("price"))
+	filepath := dataContex.(string)
 
+	price, _ := strconv.Atoi(r.FormValue("price"))
 	request := topingdto.TopingRequest{
-		Name:   r.FormValue("name"),
-		Price:  price,
-		UserID: userId,
+		Name:  r.FormValue("name"),
+		Price: price,
+		Image: filepath,
+	}
+	var ctx = context.Background()
+	var CLOUD_NAME = os.Getenv("CLOUD_NAME")
+	var API_KEY = os.Getenv("API_KEY")
+	var API_SECRET = os.Getenv("API_SECRET")
+
+	cld, _ := cloudinary.NewFromParams(CLOUD_NAME, API_KEY, API_SECRET)
+
+	// Upload file to Cloudinary ...
+	resp, err := cld.Upload.Upload(ctx, filepath, uploader.UploadParams{Folder: "waysbuck"})
+
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
 	toping := models.Toping{
-		Name:  request.Name,
-		Price: request.Price,
-		Image: filename,
+		Name:   request.Name,
+		Price:  request.Price,
+		Image:  resp.SecureURL,
+		UserID: userId,
 	}
 
-	toping, err := h.TopingRepository.CreateToping(toping)
+	topings, err := h.TopingRepository.CreateToping(toping)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		response := dto.ErrorResult{Code: http.StatusInternalServerError, Message: err.Error()}
@@ -93,7 +110,7 @@ func (h *handlerToping) CreateToping(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseToping(toping)}
+	response := dto.SuccessResult{Code: http.StatusOK, Data: convertResponseToping(topings)}
 	json.NewEncoder(w).Encode(response)
 }
 

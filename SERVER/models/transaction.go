@@ -1,7 +1,7 @@
 package models
 
 type Transaction struct {
-	ID     int    `json:"id"`
+	ID     int    `json:"id" gorm:"primary_key:auto_increment"`
 	UserID int    `json:"user_id"`
 	User   User   `json:"user"`
 	Status string `json:"status"`
